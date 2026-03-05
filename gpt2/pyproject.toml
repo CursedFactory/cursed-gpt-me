@@ -1,0 +1,22 @@
+[project]
+name = "gpt2"
+version = "0.1.0"
+description = "GPT2 model training and inference"
+requires-python = ">=3.8"
+dependencies = [
+    "torch>=2.0.0",
+    "transformers>=4.30.0",
+    "datasets>=2.0.0",
+    "accelerate>=0.20.0",
+    "peft>=0.4.0",
+    "bitsandbytes>=0.41.0",
+    "trl>=0.5.0",
+    "aim>=2.0.0",
+    "tqdm>=4.65.0",
+    "numpy>=1.24.0",
+    "pandas>=2.0.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
