@@ -1,9 +1,9 @@
 import argparse
 import logging
-import pandas as pd
 from tqdm import tqdm
 from src.logging_config import get_logger
 from src.discord_loader import DiscordLoader
+from src.discord_datastore import Datastore
 
 logger = get_logger(__name__)
 
@@ -19,15 +19,20 @@ def main():
     path_messages = discord_loader.find_messages(args.input)
     logger.info(f"Found {len(path_messages)} Discord messages")
 
+    if not path_messages:
+        return
 
-    msg_df = pd.DataFrame(columns=['ID', 'Timestamp', 'Contents', 'Attachments'])
-    for msg_path in tqdm(path_messages, desc="Loading messages"):
-        relation = discord_loader.read_relation(msg_path)
-        df = relation.to_df()
-        msg_df = pd.concat([msg_df, df], ignore_index=True)
-    logger.info(f"Loaded {len(msg_df)} total rows")
-
-    print(msg_df.head())
+    datastore = Datastore()
+    try:
+        for msg_path in tqdm(path_messages, desc="Loading messages"):
+            relation = discord_loader.read_relation(msg_path)
+            if relation is not None:
+                messages = discord_loader.process_messages(relation)
+                datastore.add_messages(messages)
+    finally:
+        total = datastore.get_message_count()
+        datastore.close()
+        logger.info(f"Total messages loaded: {total}")
 
 
 if __name__ == "__main__":
