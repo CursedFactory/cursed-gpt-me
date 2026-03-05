@@ -1,6 +1,7 @@
 import argparse
 import logging
-
+import pandas as pd
+from tqdm import tqdm
 from src.logging_config import get_logger
 from src.discord_loader import DiscordLoader
 
@@ -15,10 +16,18 @@ def main():
     logger.info("Starting gpt-discord-small")
 
     discord_loader = DiscordLoader()
-    messages = discord_loader.discord_find_messages(args.input)
-    logger.info(f"Found {len(messages)} Discord messages")
+    path_messages = discord_loader.find_messages(args.input)
+    logger.info(f"Found {len(path_messages)} Discord messages")
 
 
+    msg_df = pd.DataFrame(columns=['ID', 'Timestamp', 'Contents', 'Attachments'])
+    for msg_path in tqdm(path_messages, desc="Loading messages"):
+        relation = discord_loader.read_relation(msg_path)
+        df = relation.to_df()
+        msg_df = pd.concat([msg_df, df], ignore_index=True)
+    logger.info(f"Loaded {len(msg_df)} total rows")
+
+    print(msg_df.head())
 
 
 if __name__ == "__main__":
