@@ -61,6 +61,39 @@ class Datastore:
         result = self.connection.execute("SELECT COUNT(*) FROM messages").fetchone()
         return result[0] if result else 0
 
+    def get_random_message_and_preceding(self, n: int = 3) -> tuple:
+        """Get a random message and the last n messages before it.
+
+        Args:
+            n: Number of preceding messages to retrieve (default: 3)
+
+        Returns:
+            Tuple of (random_message, preceding_messages) where both are lists of Message objects
+        """
+        # Get a random message
+        random_result = self.connection.execute("""
+            SELECT * FROM messages
+            ORDER BY RANDOM()
+            LIMIT 1
+        ").fetchone()
+
+        if not random_result:
+            return [], []
+
+        # Get the last n messages before the random message
+        preceding_result = self.connection.execute("""
+            SELECT * FROM messages
+            WHERE timestamps < ?
+            ORDER BY timestamps DESC
+            LIMIT ?
+        """, (random_result[1], n)).fetchall()
+
+        # Convert to Message objects
+        random_message = Message.from_tuple(random_result)
+        preceding_messages = [Message.from_tuple(row) for row in preceding_result]
+
+        return random_message, preceding_messages
+
     def close(self) -> None:
         """Close the database connection."""
         if self.connection:
