@@ -57,6 +57,11 @@ class Datastore:
         )
         self.connection.commit()
 
+    def clear_messages(self) -> None:
+        """Delete all messages from the datastore."""
+        self.connection.execute("DELETE FROM messages")
+        self.connection.commit()
+
     def get_message_count(self) -> int:
         """Get the total number of messages in the datastore.
 
@@ -75,9 +80,24 @@ class Datastore:
         Returns:
             Tuple of (random_message, preceding_messages)
         """
-        # Get a random message
+        dedup_cte = """
+            WITH unique_messages AS (
+                SELECT id, timestamps, content, username, platform
+                FROM (
+                    SELECT *,
+                           ROW_NUMBER() OVER (
+                               PARTITION BY timestamps, content, username, platform
+                               ORDER BY id
+                           ) AS row_num
+                    FROM messages
+                )
+                WHERE row_num = 1
+            )
+        """
+
+        # Get a random message from deduplicated rows
         random_result = self.connection.execute(
-            "SELECT * FROM messages ORDER BY RANDOM() LIMIT 1"
+            dedup_cte + "SELECT * FROM unique_messages ORDER BY RANDOM() LIMIT 1"
         ).fetchone()
 
         if not random_result:
@@ -85,13 +105,13 @@ class Datastore:
 
         # Get the last n messages before the random message
         preceding_result = self.connection.execute(
-            "SELECT * FROM messages WHERE timestamps < ? ORDER BY timestamps DESC LIMIT ?",
+            dedup_cte + "SELECT * FROM unique_messages WHERE timestamps < ? ORDER BY timestamps DESC LIMIT ?",
             (random_result[1], n)
         ).fetchall()
 
         # Convert to Message objects
         random_message = Message.from_tuple(random_result)
-        preceding_messages = [Message.from_tuple(row) for row in preceding_result]
+        preceding_messages = [Message.from_tuple(row) for row in reversed(preceding_result)]
 
         return random_message, preceding_messages
 

@@ -4,6 +4,7 @@ from tqdm import tqdm
 from src.logging_config import get_logger
 from src.discord_loader import DiscordLoader
 from src.discord_datastore import Datastore
+from src.message import format_textfile
 
 logger = get_logger(__name__)
 
@@ -25,6 +26,7 @@ def main():
 
     datastore = Datastore()
     try:
+        datastore.clear_messages()
         for i, msg_path in enumerate(tqdm(path_messages, desc="Loading messages")):
             if i >= args.limit:
                 break
@@ -38,33 +40,32 @@ def main():
         datastore.close()
         logger.info(f"Total messages loaded: {total}")
 
-    # Test the new get_random_message_and_preceding method
+    # Test message formatting
     datastore = Datastore()
-    test_random_message(datastore)
+    test_formatting(datastore)
     datastore.close()
 
 
-def test_random_message(datastore: Datastore) -> None:
-    """Test the get_random_message_and_preceding method."""
-    logger.info("Testing get_random_message_and_preceding method...")
+def test_formatting(datastore: Datastore) -> None:
+    """Test formatting messages for training and prompt generation."""
+    logger.info("Testing message formatting for training and prompt generation...")
 
-    random_message, preceding_messages = datastore.get_random_message_and_preceding(n=3)
+    for i in range(5):
+        random_message, preceding_messages = datastore.get_random_message_and_preceding(n=3)
 
-    if not random_message:
-        logger.warning("No messages found in database to test")
-        return
+        if not random_message:
+            logger.warning("No messages found in database to test")
+            return
 
-    logger.info(f"Random message:")
-    logger.info(f"  ID: {random_message.id}")
-    logger.info(f"  Username: {random_message.username}")
-    logger.info(f"  Content: {random_message.content[:50]}...")
-    logger.info(f"  Timestamps: {random_message.timestamps}")
+        message_sequence = preceding_messages + [random_message]
+        train_string = format_textfile(message_sequence, context_window=3, mode='training')
+        prompt_string = format_textfile(message_sequence, context_window=3, mode='prompt')
 
-    logger.info(f"Preceding messages ({len(preceding_messages)}):")
-    for i, msg in enumerate(preceding_messages, 1):
-        logger.info(f"  {i}. {msg.username}: {msg.content[:50]}... (ts: {msg.timestamps})")
+        logger.info(f"\n--- Test {i + 1} ---")
+        logger.info(f"Training format:\n{train_string}")
+        logger.info(f"\nPrompt format:\n{prompt_string}")
 
-    logger.info("Test completed successfully")
+    logger.info("Formatting test completed successfully")
 
 
 if __name__ == "__main__":
