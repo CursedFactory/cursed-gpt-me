@@ -1,7 +1,0 @@
-# Discord Import
-discord.py>=2.0.0
-
-# GPT2 Training
-torch>=2.0.0
-transformers>=4.30.0
-aim>=2.0.0

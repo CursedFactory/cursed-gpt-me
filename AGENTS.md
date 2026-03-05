@@ -10,12 +10,12 @@ This is a demo project for training GPT2 on Discord messages with monitoring usi
 
 ### Setup
 ```bash
-# Install dependencies
-pip install -r requirements.txt
+# Install dependencies using uv
+uv pip install -r requirements.txt
 
-# Create virtual environment (recommended)
-python -m venv venv
-source venv/bin/activate  # On Windows: venv\Scripts\activate
+# Create virtual environment using uv
+uv venv
+source .venv/bin/activate  # On Windows: .venv\Scripts\activate
 ```
 
 ### Build
@@ -69,6 +69,13 @@ pytest -k "test_gpt2"
 
 # Run tests in a specific directory
 pytest tests/gpt2/
+```
+
+### Run CLI
+```bash
+# Run CLI with uv
+uv run discord-import.py --help
+uv run discord-import.py import -i /path/to/messages
 ```
 
 ## Code Style Guidelines
@@ -185,6 +192,25 @@ def train_gpt2_model(
 ├── requirements.txt         # Python dependencies
 ├── AGENTS.md               # This file
 └── README.md               # Project documentation
+```
+
+## CLI Usage
+
+### Available Commands
+
+The Discord Import CLI provides the following commands:
+
+- **import**: Import Discord messages from a folder
+
+### Running the CLI
+
+```bash
+# Show help
+uv run discord-import.py --help
+
+# Import Discord messages
+uv run discord-import.py import -i /path/to/messages
+uv run discord-import.py import /path/to/messages
 ```
 
 ## Cursor Rules

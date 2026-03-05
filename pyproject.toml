@@ -1,23 +1,9 @@
 [project]
 name = "gpt-discord-small"
 version = "0.1.0"
-description = "Demo project for training GPT2 on Discord messages with monitoring using AIM"
-requires-python = ">=3.8"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
 dependencies = [
-    "discord.py>=2.0.0",
-    "torch>=2.0.0",
-    "transformers>=4.30.0",
-    "aim>=2.0.0",
-]
-
-[build-system]
-requires = ["hatchling"]
-build-backend = "hatchling.build"
-
-[tool.uv]
-dev-dependencies = [
-    "pytest>=7.0.0",
-    "ruff>=0.1.0",
-    "black>=23.0.0",
-    "mypy>=1.0.0",
+    "duckdb>=1.4.4",
 ]
