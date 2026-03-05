@@ -1,8 +1,6 @@
-
-import logging
-import duckdb
-import pandas as pd
 from pathlib import Path
+
+import duckdb
 
 from src.logging_config import get_logger
 from src.message import Message
@@ -34,12 +32,11 @@ class DiscordLoader:
             logger.error(f"Message.json does not exist: {path}")
             return None
 
-        relation = duckdb.sql(f"SELECT * FROM '{str(path)}'")
-
-        if relation.fetchone() is None:
+        try:
+            return duckdb.sql(f"SELECT * FROM read_json('{str(path)}')")
+        except Exception as e:
+            logger.error(f"Error reading relation from {path}: {e}")
             return None
-
-        return relation
 
     def process_messages(self, relation, batch_size=1000):
         messages = []
@@ -49,6 +46,8 @@ class DiscordLoader:
             return messages
 
         relation_list = relation.fetchall()
+        if not relation_list:
+            return messages
 
         for i, row in enumerate(relation_list):
             message_id = i

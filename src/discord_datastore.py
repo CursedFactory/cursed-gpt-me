@@ -1,5 +1,6 @@
+from typing import List, Optional, Tuple
+
 import duckdb
-from typing import List, Optional
 from src.logging_config import get_logger
 from src.message import Message
 
@@ -20,11 +21,8 @@ class Datastore:
     def _create_table(self):
         """Create the messages table if it doesn't exist."""
         self.connection.execute("""
-            DROP TABLE IF EXISTS messages
-        """)
-        self.connection.execute("""
-            CREATE TABLE messages (
-                id INTEGER,
+            CREATE TABLE IF NOT EXISTS messages (
+                id VARCHAR,
                 timestamps BIGINT,
                 content VARCHAR,
                 username VARCHAR,
@@ -42,6 +40,7 @@ class Datastore:
             "INSERT INTO messages VALUES (?, ?, ?, ?, ?)",
             message.to_tuple()
         )
+        self.connection.commit()
 
     def add_messages(self, messages: List[Message]) -> None:
         """Add multiple messages to the datastore.
@@ -49,8 +48,14 @@ class Datastore:
         Args:
             messages: List of Message objects
         """
-        for msg in messages:
-            self.add_message(msg)
+        if not messages:
+            return
+
+        self.connection.executemany(
+            "INSERT INTO messages VALUES (?, ?, ?, ?, ?)",
+            [msg.to_tuple() for msg in messages],
+        )
+        self.connection.commit()
 
     def get_message_count(self) -> int:
         """Get the total number of messages in the datastore.
@@ -61,32 +66,28 @@ class Datastore:
         result = self.connection.execute("SELECT COUNT(*) FROM messages").fetchone()
         return result[0] if result else 0
 
-    def get_random_message_and_preceding(self, n: int = 3) -> tuple:
+    def get_random_message_and_preceding(self, n: int = 3) -> Tuple[Optional[Message], List[Message]]:
         """Get a random message and the last n messages before it.
 
         Args:
             n: Number of preceding messages to retrieve (default: 3)
 
         Returns:
-            Tuple of (random_message, preceding_messages) where both are lists of Message objects
+            Tuple of (random_message, preceding_messages)
         """
         # Get a random message
-        random_result = self.connection.execute("""
-            SELECT * FROM messages
-            ORDER BY RANDOM()
-            LIMIT 1
-        ").fetchone()
+        random_result = self.connection.execute(
+            "SELECT * FROM messages ORDER BY RANDOM() LIMIT 1"
+        ).fetchone()
 
         if not random_result:
-            return [], []
+            return None, []
 
         # Get the last n messages before the random message
-        preceding_result = self.connection.execute("""
-            SELECT * FROM messages
-            WHERE timestamps < ?
-            ORDER BY timestamps DESC
-            LIMIT ?
-        """, (random_result[1], n)).fetchall()
+        preceding_result = self.connection.execute(
+            "SELECT * FROM messages WHERE timestamps < ? ORDER BY timestamps DESC LIMIT ?",
+            (random_result[1], n)
+        ).fetchall()
 
         # Convert to Message objects
         random_message = Message.from_tuple(random_result)
