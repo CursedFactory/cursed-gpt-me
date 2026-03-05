@@ -1,0 +1,14 @@
+services:
+  datastore-server:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    network_mode: host
+    environment:
+      DATASTORE_API_KEY: ${DATASTORE_API_KEY:-replace-me}
+      DATASTORE_SERVER_HOST: 127.0.0.1
+      DATASTORE_SERVER_PORT: "4040"
+      DATABASE_URL: file:/app/data/datastore.db
+    volumes:
+      - ../data:/app/data
+    restart: unless-stopped

@@ -1,0 +1,20 @@
+{
+  "name": "datastore-core",
+  "version": "0.1.0",
+  "type": "module",
+  "main": "./src/index.ts",
+  "types": "./src/index.ts",
+  "scripts": {
+    "prisma:generate": "bunx --bun prisma generate",
+    "prisma:migrate": "bunx --bun prisma migrate dev --name init",
+    "prisma:studio": "bunx --bun prisma studio"
+  },
+  "dependencies": {
+    "@prisma/adapter-libsql": "^6.17.1",
+    "@prisma/client": "^6.17.1",
+    "adze": "^2.2.0"
+  },
+  "devDependencies": {
+    "prisma": "^6.17.1"
+  }
+}

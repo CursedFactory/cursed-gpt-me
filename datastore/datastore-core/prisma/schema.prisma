@@ -1,0 +1,23 @@
+generator client {
+  provider   = "prisma-client"
+  output     = "./generated"
+  engineType = "client"
+  runtime    = "bun"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model TextMessage {
+  id           Int      @id @default(autoincrement())
+  user         String
+  thread       String
+  platformUuid String   @map("platform_uuid")
+  platform     String
+  message      String
+  createdAt    DateTime @default(now())
+
+  @@map("text_messages")
+}

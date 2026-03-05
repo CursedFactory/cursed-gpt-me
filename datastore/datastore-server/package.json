@@ -1,0 +1,14 @@
+{
+  "name": "datastore-server",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "start": "bun run src/index.ts",
+    "dev": "bun run --watch src/index.ts"
+  },
+  "dependencies": {
+    "datastore-core": "workspace:*",
+    "elysia": "^1.4.16"
+  }
+}

@@ -1,0 +1,17 @@
+{
+  "name": "datastore",
+  "private": true,
+  "workspaces": [
+    "datastore-core",
+    "datastore-cli",
+    "datastore-server"
+  ],
+  "scripts": {
+    "core:generate": "bun run --cwd datastore-core prisma:generate",
+    "core:migrate": "bun run --cwd datastore-core prisma:migrate",
+    "core:studio": "bun run --cwd datastore-core prisma:studio",
+    "cli": "bun run --cwd datastore-cli start",
+    "server": "bun run --cwd datastore-server start",
+    "server:dev": "bun run --cwd datastore-server dev"
+  }
+}
